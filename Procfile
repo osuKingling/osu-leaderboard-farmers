@@ -1,0 +1,1 @@
+worker: python3 leaderboard-project-bot/bot_main.py

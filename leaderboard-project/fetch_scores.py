@@ -8,6 +8,7 @@ api_manager = apimgr.APIManager()
 
 
 def refresh_all_scores(beatmap_ids):
+    db_manager.create_temp_scores()
     batch_size = 50
     for i in range(0, len(beatmap_ids), batch_size):
         print(f"{i}/{len(beatmap_ids)} complete", dt.now().strftime("%H:%M:%S:%f"))
@@ -18,8 +19,9 @@ def refresh_all_scores(beatmap_ids):
             beatmap_id = beatmap_ids[i+n]
             db_manager.import_score(scores, beatmap_id)
             n += 1
-
+    db_manager.copy_from_temp_to_scores()
     db_manager.create_ones_table()
+    db_manager.delete_temp_scores()
 
 
 if __name__ == '__main__':

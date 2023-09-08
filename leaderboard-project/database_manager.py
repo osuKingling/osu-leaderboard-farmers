@@ -126,7 +126,7 @@ class DatabaseManager:
     def import_score(self, scores, beatmap_id):
         # print("start of db import", dt.now().strftime("%H:%M:%S:%f"))
         query = """
-            INSERT INTO scores
+            INSERT INTO scores_temp
             VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
             ON CONFLICT DO NOTHING
         """
@@ -186,6 +186,40 @@ class DatabaseManager:
         cur.execute(query)
         self.conn.commit()
         cur.close()
+
+    def create_temp_scores(self):
+        query = """CREATE TABLE IF NOT EXISTS scores_temp (
+                    score_id BIGINT PRIMARY KEY,
+                    username TEXT NOT NULL,
+                    user_id INT NOT NULL,
+                    beatmap_id INT NOT NULL,
+                    score BIGINT NOT NULL,
+                    accuracy float4 NOT NULL,
+                    combo INT NOT NULL,
+                    mods INT NOT NULL,
+                    count_300 INT NOT NULL,
+                    count_100 INT NOT NULL,
+                    count_50 INT NOT NULL,
+                    count_miss INT NOT NULL,
+                    pp float4 NOT NULL,
+                    created_at TIMESTAMP NOT NULL,
+                    rank INT NOT NULL          
+                    );"""
+
+        cursor = self.conn.cursor()
+        cursor.execute(query)
+        cursor.close()
+        self.conn.commit()
+
+    def delete_temp_scores(self):
+        query = "DROP TABLE scores_temp"
+        cursor = self.conn.cursor()
+        cursor.execute(query)
+        cursor.close()
+        self.conn.commit()
+
+    def copy_from_temp_to_scores(self):
+        queries = ["TRUNCATE scores", "INSERT INTO scores SELECT * FROM scores_temp"]
 
     def convert_mod_list_to_bitwise(self, mods):
         mod_int = 0

@@ -177,8 +177,8 @@ class DatabaseManager:
 
     def create_ones_table(self):
         query = """CREATE TABLE one_scores AS
-                   SELECT temp_scores.* FROM 
-                   (SELECT scores.*, rank() OVER (PARTITION BY beatmap_id ORDER BY score DESC, created_at ASC) FROM scores) AS temp_scores 
+                   SELECT * 
+                   FROM scores              
                    WHERE rank = 1"""
 
         cur = self.conn.cursor()

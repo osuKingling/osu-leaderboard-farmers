@@ -220,6 +220,11 @@ class DatabaseManager:
 
     def copy_from_temp_to_scores(self):
         queries = ["TRUNCATE scores", "INSERT INTO scores SELECT * FROM scores_temp"]
+        cursor = self.conn.cursor()
+        for query in queries:
+            cursor.execute(query)
+        cursor.close()
+        self.conn.commit()
 
     def convert_mod_list_to_bitwise(self, mods):
         mod_int = 0

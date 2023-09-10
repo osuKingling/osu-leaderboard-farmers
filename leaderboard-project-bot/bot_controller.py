@@ -110,7 +110,7 @@ def retrieve_beatmap_data(beatmap_id):
 
 def retrieve_1s(mods: str, max_acc: float, min_acc: float, user_id: int, max_length: int, min_length: int,
                 min_stars: float, max_stars: float, min_ar: float, max_ar: float, min_od: float, max_od: float,
-                max_spinners: int, tag: str):
+                min_spinners: int, max_spinners: int, tag: str):
     conn = establish_conn()
     cursor = conn.cursor()
 
@@ -134,6 +134,8 @@ def retrieve_1s(mods: str, max_acc: float, min_acc: float, user_id: int, max_len
         beatmap_query_params.append(f"ar >= {min_od}")
     if max_od is not None:
         beatmap_query_params.append(f"ar <= {max_od}")
+    if min_spinners is not None:
+        beatmap_query_params.append(f"spinners >= {min_spinners}")
     if max_spinners is not None:
         beatmap_query_params.append(f"spinners <= {max_spinners}")
 
@@ -142,11 +144,11 @@ def retrieve_1s(mods: str, max_acc: float, min_acc: float, user_id: int, max_len
         beatmap_ids_query += ' AND '.join(beatmap_query_params)
 
     rank1s_query = f"""WITH ids AS ({beatmap_ids_query})
-                    SELECT one_scores.*, beatmaps.* FROM 
-                        one_scores
+                    SELECT scores.*, beatmaps.* FROM 
+                        scores
                     INNER JOIN beatmaps
-                        ON one_scores.beatmap_id = beatmaps.beatmap_id
-                    WHERE one_scores.beatmap_id in (SELECT beatmap_id FROM ids)"""
+                        ON scores.beatmap_id = beatmaps.beatmap_id
+                    WHERE scores.beatmap_id in (SELECT beatmap_id FROM ids) AND rank = 1"""
     score_query_params = []
 
     if mods is not None:
@@ -190,7 +192,7 @@ def retrieve_1s(mods: str, max_acc: float, min_acc: float, user_id: int, max_len
 
 def leaderboard(mods: str, max_acc: float, min_acc: float, user_id: int, max_length: int, min_length: int,
                 min_stars: int, max_stars: float, min_ar: float, max_ar: float, min_od: float, max_od: float,
-                max_spinners: int, tag: str):
+                min_spinners: int, max_spinners: int, tag: str):
     conn = establish_conn()
     cursor = conn.cursor()
 
@@ -214,6 +216,8 @@ def leaderboard(mods: str, max_acc: float, min_acc: float, user_id: int, max_len
         beatmap_query_params.append(f"ar >= {min_od}")
     if max_od is not None:
         beatmap_query_params.append(f"ar <= {max_od}")
+    if min_spinners is not None:
+        beatmap_query_params.append(f"spinners >= {min_spinners}")
     if max_spinners is not None:
         beatmap_query_params.append(f"spinners <= {max_spinners}")
     if tag is not None:

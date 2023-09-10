@@ -32,9 +32,10 @@ async def top_1s_leaderboard(ctx, mods: str = None, max_acc: float = None, min_a
                              max_length: int = None, min_length: int = None, min_stars: float = None,
                              max_stars: float = None, min_ar: float = None, max_ar: float = None, min_od: float = None,
                              max_od: float = None,
-                             max_spinners: int = None, tag: str = None, page: int = 1):
+                             min_spinners: int = None, max_spinners: int = None, tag: str = None, page: int = 1):
     leaderboard_data = bot_controller.leaderboard(mods, max_acc, min_acc, user_id, max_length, min_length, min_stars,
-                                                  max_stars, min_ar, max_ar, min_od, max_od, max_spinners, tag)
+                                                  max_stars, min_ar, max_ar, min_od, max_od, min_spinners, max_spinners,
+                                                  tag)
     leaderboard_header = ['Rank', 'Username', 'Count']
 
     embeds = []
@@ -55,11 +56,11 @@ async def search_top_1s(ctx, mods: str = None, max_acc: float = None, min_acc: f
                         max_length: int = None, min_length: int = None, min_stars: float = None,
                         max_stars: float = None, min_ar: float = None, max_ar: float = None, min_od: float = None,
                         max_od: float = None,
-                        max_spinners: int = None, tag: str = None):
+                        min_spinners: int = None, max_spinners: int = None, tag: str = None):
     await ctx.response.send_message("CSV File:")
     buffer = bot_controller.retrieve_1s(mods, max_acc, min_acc, user_id, max_length, min_length, min_stars, max_stars,
                                         min_ar, max_ar, min_od, max_od,
-                                        max_spinners, tag)
+                                        min_spinners, max_spinners, tag)
     await ctx.channel.send(file=discord.File(buffer, 'generated-csv.csv'))
 
 
@@ -76,6 +77,7 @@ async def link_account(interaction: discord.Interaction, user_id: int):
 @client.event
 async def on_ready():
     await tree.sync()
+    print("Ready")
 
 
 if __name__ == "__main__":

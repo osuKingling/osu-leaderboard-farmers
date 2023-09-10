@@ -14,7 +14,7 @@ tree = app_commands.CommandTree(client)
 
 @tree.command(name="retrievebeatmapleaderboard")
 async def retrieve_leaderboard(ctx: discord.Interaction, beatmap_id: int):
-    ctx.response.defer()
+    await ctx.response.defer()
     try:
         leaderboard = bot_controller.retrieve_leaderboard(beatmap_id)
         beatmap_data = bot_controller.retrieve_beatmap_data(beatmap_id)

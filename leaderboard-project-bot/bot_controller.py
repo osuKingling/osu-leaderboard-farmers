@@ -148,8 +148,7 @@ def create_beatmap_query(min_length: int, max_length: int, min_stars: float, max
     return beatmap_ids_query, beatmap_query_args, output_header
 
 
-def create_score_query(mods: str, max_acc: float, min_acc: float, user_id: int,
-                       combine_mods: bool):
+def create_score_query(mods: str, max_acc: float, min_acc: float, user_id: int, combine_mods: bool):
     score_query_params = []
     score_query_args = {}
     output_header = ""
@@ -194,8 +193,8 @@ def create_score_query(mods: str, max_acc: float, min_acc: float, user_id: int,
 def retrieve_leaderboard(beatmap_id):
     conn = establish_conn()
     cursor = conn.cursor()
-    query = f"SELECT * FROM scores WHERE beatmap_id = {beatmap_id} ORDER BY score DESC"
-    cursor.execute(query)
+    query = f"SELECT * FROM scores WHERE beatmap_id = %(beatmap_id)s ORDER BY score DESC"
+    cursor.execute(query, {'beatmap_id': beatmap_id})
     leaderboard = cursor.fetchall()
     leaderboard_header = ['Username', 'Score', 'Accuracy', 'Mods', 'PP']
     leaderboard_output = []
@@ -205,7 +204,7 @@ def retrieve_leaderboard(beatmap_id):
         for mod in mods:
             modstring += mod
         leaderboard_output.append(
-            [row[1], "{:,}".format(row[4]), str(round(row[5], 2)), modstring, str(round(row[11], 2))])
+            [row[1], "{:,}".format(row[4]), str(round(row[5], 2)), modstring, str(round(row[12], 2))])
     conn.close()
     return t2a(header=leaderboard_header, body=leaderboard_output, style=PresetStyle.borderless)
 
@@ -213,8 +212,8 @@ def retrieve_leaderboard(beatmap_id):
 def retrieve_beatmap_data(beatmap_id):
     conn = establish_conn()
     cursor = conn.cursor()
-    query = f"SELECT * FROM beatmaps WHERE beatmap_id = {beatmap_id}"
-    cursor.execute(query)
+    query = f"SELECT * FROM beatmaps WHERE beatmap_id = %(beatmap_id)s"
+    cursor.execute(query, {'beatmap_id': beatmap_id})
     beatmap_data = cursor.fetchone()
     conn.close()
     return beatmap_data

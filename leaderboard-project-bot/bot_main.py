@@ -13,7 +13,8 @@ tree = app_commands.CommandTree(client)
 
 
 @tree.command(name="retrievebeatmapleaderboard")
-async def retrieve_leaderboard(ctx, beatmap_id: int):
+async def retrieve_leaderboard(ctx: discord.Interaction, beatmap_id: int):
+    ctx.response.defer()
     try:
         leaderboard = bot_controller.retrieve_leaderboard(beatmap_id)
         beatmap_data = bot_controller.retrieve_beatmap_data(beatmap_id)
@@ -21,10 +22,10 @@ async def retrieve_leaderboard(ctx, beatmap_id: int):
             title=f'{beatmap_data[4]} - {beatmap_data[3]} [{beatmap_data[6]}] mapped by {beatmap_data[21]}',
             description=f'```{leaderboard}```',
             color=0xFF5733)
-        await ctx.response.send_message(embed=embed)
+        await ctx.followup.send(embed=embed)
     except TypeError as e:
         print(e)
-        await ctx.response.send_message("Beatmap ID Not Found")
+        await ctx.followup.send("Beatmap ID Not Found")
 
 
 @tree.command(name="top1sleaderboard")
@@ -35,6 +36,8 @@ async def top_1s_leaderboard(ctx: discord.Interaction, mods: str = None, max_acc
                              max_od: float = None,
                              min_spinners: int = None, max_spinners: int = None, tag: str = None, page: int = 1,
                              combine_mods: bool = True):
+    await ctx.response.defer()
+
     leaderboard_data, header_text = bot_controller.leaderboard(mods, max_acc, min_acc, user_id, max_length, min_length,
                                                                min_stars,
                                                                max_stars, min_ar, max_ar, min_od, max_od, min_spinners,
@@ -47,7 +50,7 @@ async def top_1s_leaderboard(ctx: discord.Interaction, mods: str = None, max_acc
     osu_username = bot_controller.check_account(ctx.user.id)
 
     if len(leaderboard_data) == 0:
-        await ctx.response.send_message('No results for this query', ephemeral=True)
+        await ctx.followup.send('No results for this query', ephemeral=True)
     else:
 
         for i in range(0, len(leaderboard_data), 10):
@@ -64,20 +67,21 @@ async def top_1s_leaderboard(ctx: discord.Interaction, mods: str = None, max_acc
             embed.set_footer(text=f"Page {page}/{-(-len(leaderboard_data) // 10)}")
             embeds.append(embed)
 
-        await ctx.response.send_message(embed=embeds[page - 1])
+        await ctx.followup.send(embed=embeds[page - 1])
 
 
 @tree.command(name="searchtop1s")
-async def search_top_1s(ctx, mods: str = None, max_acc: float = None, min_acc: float = None, user_id: int = None,
+async def search_top_1s(ctx: discord.Interaction, mods: str = None, max_acc: float = None, min_acc: float = None,
+                        user_id: int = None,
                         max_length: int = None, min_length: int = None, min_stars: float = None,
                         max_stars: float = None, min_ar: float = None, max_ar: float = None, min_od: float = None,
                         max_od: float = None,
                         min_spinners: int = None, max_spinners: int = None, tag: str = None, combine_mods: bool = True):
-    await ctx.response.send_message("CSV File:")
+    await ctx.response.defer()
     buffer = bot_controller.retrieve_1s(mods, max_acc, min_acc, user_id, max_length, min_length, min_stars, max_stars,
                                         min_ar, max_ar, min_od, max_od,
                                         min_spinners, max_spinners, tag, combine_mods)
-    await ctx.channel.send(file=discord.File(buffer, 'generated-csv.csv'))
+    await ctx.followup.send(file=discord.File(buffer, 'generated-csv.csv'))
 
 
 @tree.command(name="link_account")

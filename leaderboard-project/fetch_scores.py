@@ -14,11 +14,13 @@ def refresh_all_scores(beatmap_ids):
         print(f"{i}/{len(beatmap_ids)} complete", dt.now().strftime("%H:%M:%S:%f"))
         retrieve_scores = api_manager.retrieve_beatmap_scores(beatmap_ids[i:i+batch_size])
         n = 0
-        for scores in retrieve_scores:
-
-            beatmap_id = beatmap_ids[i+n]
-            db_manager.import_score(scores, beatmap_id)
-            n += 1
+        try:
+            for scores in retrieve_scores:
+                beatmap_id = beatmap_ids[i+n]
+                db_manager.import_score(scores, beatmap_id)
+                n += 1
+        except TypeError:
+            pass
     db_manager.copy_from_temp_to_scores()
     db_manager.create_ones_table()
     db_manager.delete_temp_scores()

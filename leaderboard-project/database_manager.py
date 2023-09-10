@@ -86,6 +86,9 @@ class DatabaseManager:
            );           
         """,
         """
+        CREATE UNIQUE INDEX idx_scores_beatmapid_rank ON scores (beatmap_id, rank);
+        """,
+        """
             CREATE TABLE IF NOT EXISTS users (
             discord_id BIGINT PRIMARY KEY,
             osu_user_id INT          
@@ -126,9 +129,12 @@ class DatabaseManager:
     def import_score(self, scores, beatmap_id):
         # print("start of db import", dt.now().strftime("%H:%M:%S:%f"))
         query = """
-            INSERT INTO scores_temp
+            INSERT INTO scores
             VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
-            ON CONFLICT DO NOTHING
+            ON CONFLICT (beatmap_id, rank)
+            DO update 
+            SET (score_id, username, user_id, score, accuracy, combo, mods, count_300, count_100, count_50, count_miss, pp, created_at) =
+            (EXCLUDED.score_id, EXCLUDED.username, EXCLUDED.user_id, EXCLUDED.score, EXCLUDED.accuracy, EXCLUDED.combo, EXCLUDED.mods, EXCLUDED.count_300, EXCLUDED. count_100, EXCLUDED.count_50, EXCLUDED.count_miss, EXCLUDED.pp, EXCLUDED.created_at)
         """
 
         try:

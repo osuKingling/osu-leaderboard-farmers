@@ -61,21 +61,32 @@ def convert_mod_list_to_bitwise(mods):
 
 def convert_bitwise_to_mod_list(mod_int):
     mod_list = []
-    if mod_int & 1 << 0:   mod_list.append('NF')
-    if mod_int & 1 << 1:   mod_list.append('EZ')
-    if mod_int & 1 << 2:   mod_list.append('HD')
-    if mod_int & 1 << 3:   mod_list.append('HR')
-    if mod_int & 1 << 4:   mod_list.append('SD')
-    if mod_int & 1 << 6:   mod_list.append('RX')
-    if mod_int & 1 << 7:   mod_list.append('HT')
+    if mod_int & 1 << 0:
+        mod_list.append('NF')
+    if mod_int & 1 << 1:
+        mod_list.append('EZ')
+    if mod_int & 1 << 2:
+        mod_list.append('HD')
+    if mod_int & 1 << 3:
+        mod_list.append('HR')
+    if mod_int & 1 << 4:
+        mod_list.append('SD')
+    if mod_int & 1 << 6:
+        mod_list.append('RX')
+    if mod_int & 1 << 7:
+        mod_list.append('HT')
     if mod_int & 1 << 8:
         mod_list.append('NC')
     elif mod_int & 1 << 5:
         mod_list.append('DT')
-    if mod_int & 1 << 9:   mod_list.append('FL')
-    if mod_int & 1 << 10:  mod_list.append('SO')
-    if mod_int & 1 << 11:  mod_list.append('PF')
-    if mod_int & 1 << 12:  mod_list.append('TD')
+    if mod_int & 1 << 9:
+        mod_list.append('FL')
+    if mod_int & 1 << 10:
+        mod_list.append('SO')
+    if mod_int & 1 << 11:
+        mod_list.append('PF')
+    if mod_int & 1 << 12:
+        mod_list.append('TD')
 
     return mod_list
 

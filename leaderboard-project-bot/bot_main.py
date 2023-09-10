@@ -28,7 +28,7 @@ async def retrieve_leaderboard(ctx, beatmap_id: int):
 
 
 @tree.command(name="top1sleaderboard")
-async def top_1s_leaderboard(ctx, mods: str = None, max_acc: float = None,
+async def top_1s_leaderboard(ctx: discord.Interaction, mods: str = None, max_acc: float = None,
                              min_acc: float = None, user_id: int = None,
                              max_length: int = None, min_length: int = None, min_stars: float = None,
                              max_stars: float = None, min_ar: float = None, max_ar: float = None, min_od: float = None,
@@ -44,14 +44,22 @@ async def top_1s_leaderboard(ctx, mods: str = None, max_acc: float = None,
 
     embeds = []
 
+    osu_username = bot_controller.check_account(ctx.user.id)[0]
+
     if len(leaderboard_data) == 0:
         await ctx.response.send_message('No results for this query', ephemeral=True)
     else:
 
         for i in range(0, len(leaderboard_data), 10):
+            output_data = leaderboard_data[i:i + 10]
+            if osu_username != None:
+                for row in leaderboard_data:
+                    if row[1].lower() == osu_username.lower() and osu_username not in [x[1] for x in output_data]:
+                        output_data.append(row)
+
             embed = discord.Embed(
                 title=f'#1 Leaderboard: {header_text}',
-                description=f'```{t2a(header=leaderboard_header, body=leaderboard_data[i:i + 10], style=PresetStyle.borderless)}```',
+                description=f'```{t2a(header=leaderboard_header, body=output_data, style=PresetStyle.borderless)}```',
                 color=0xFF5733)
             embed.set_footer(text=f"Page {page}/{-(-len(leaderboard_data) // 10)}")
             embeds.append(embed)
@@ -73,9 +81,9 @@ async def search_top_1s(ctx, mods: str = None, max_acc: float = None, min_acc: f
 
 
 @tree.command(name="link_account")
-async def link_account(interaction: discord.Interaction, user_id: int):
+async def link_account(interaction: discord.Interaction, username: str):
     try:
-        bot_controller.link_account(interaction.user.id, user_id)
+        bot_controller.link_account(interaction.user.id, username)
         await interaction.response.send_message('Account linked successfully', ephemeral=True)
     except Exception as e:
         await interaction.response.send_message('Account linked failed', ephemeral=True)

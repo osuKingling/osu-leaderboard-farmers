@@ -68,7 +68,7 @@ class DatabaseManager:
         """,
                    """
                        CREATE TABLE IF NOT EXISTS scores (
-                       score_id BIGINT PRIMARY KEY,
+                       score_id BIGINT NOT NULL,
                        username TEXT NOT NULL,
                        user_id INT NOT NULL,
                        beatmap_id INT NOT NULL,
@@ -86,12 +86,12 @@ class DatabaseManager:
                       );           
                    """,
                    """
-                   CREATE UNIQUE INDEX idx_scores_beatmapid_rank ON scores (beatmap_id, rank);
+                   CREATE UNIQUE INDEX IF NOT EXISTS idx_scores_beatmapid_rank ON scores (beatmap_id, rank);
                    """,
                    """
                        CREATE TABLE IF NOT EXISTS users (
                        discord_id BIGINT PRIMARY KEY,
-                       osu_user_id INT          
+                       osu_user_id TEXT          
                       );           
                    """]
 

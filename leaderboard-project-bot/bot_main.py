@@ -29,24 +29,24 @@ async def retrieve_leaderboard(ctx, beatmap_id: int):
 
 @tree.command(name="top1sleaderboard")
 async def top_1s_leaderboard(ctx, mods: str = None, max_acc: float = None, min_acc: float = None, user_id: int = None,
-                             max_length: int = None, min_length: int = None, min_stars: int = None, max_stars: float = None,
+                             max_length: int = None, min_length: int = None, min_stars: int = None,
+                             max_stars: float = None,
                              max_spinners: int = None, tag: str = None, page: int = 1):
-    leaderboard_data = bot_controller.leaderboard(mods, max_acc, min_acc, user_id, max_length, min_length, min_stars, max_stars, max_spinners, tag)
+    leaderboard_data = bot_controller.leaderboard(mods, max_acc, min_acc, user_id, max_length, min_length, min_stars,
+                                                  max_stars, max_spinners, tag)
     leaderboard_header = ['Rank', 'Username', 'Count']
 
     embeds = []
 
     for i in range(0, len(leaderboard_data), 10):
         embed = discord.Embed(
-                      title=f'#1 Count Leaderboard Test',
-                      description=f'```{t2a(header=leaderboard_header, body=leaderboard_data[i:i+10], style=PresetStyle.borderless)}```',
-                      color=0xFF5733)
+            title=f'#1 Count Leaderboard Test',
+            description=f'```{t2a(header=leaderboard_header, body=leaderboard_data[i:i + 10], style=PresetStyle.borderless)}```',
+            color=0xFF5733)
         embed.set_footer(text=f"Page {page}/{-(-len(leaderboard_data) // 10)}")
         embeds.append(embed)
 
-
-    await ctx.response.send_message(embed=embeds[page-1])
-
+    await ctx.response.send_message(embed=embeds[page - 1])
 
 
 @tree.command(name="searchtop1s")
@@ -54,8 +54,10 @@ async def search_top_1s(ctx, mods: str = None, max_acc: float = None, min_acc: f
                         max_length: int = None, min_length: int = None, min_stars: int = None, max_stars: float = None,
                         max_spinners: int = None):
     await ctx.response.send_message("CSV File:")
-    buffer = bot_controller.retrieve_1s(mods, max_acc, min_acc, user_id, max_length, min_length, min_stars, max_stars, max_spinners)
+    buffer = bot_controller.retrieve_1s(mods, max_acc, min_acc, user_id, max_length, min_length, min_stars, max_stars,
+                                        max_spinners)
     await ctx.channel.send(file=discord.File(buffer, 'generated-csv.csv'))
+
 
 @tree.command(name="link_account")
 async def link_account(interaction: discord.Interaction, user_id: int):
@@ -70,6 +72,7 @@ async def link_account(interaction: discord.Interaction, user_id: int):
 @client.event
 async def on_ready():
     await tree.sync()
+
 
 if __name__ == "__main__":
     client.run(DISCORD_TOKEN)

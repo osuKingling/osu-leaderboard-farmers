@@ -91,7 +91,7 @@ class DatabaseManager:
                    """
                        CREATE TABLE IF NOT EXISTS users (
                        discord_id BIGINT PRIMARY KEY,
-                       osu_user_id TEXT          
+                       osu_username TEXT          
                       );           
                    """]
 

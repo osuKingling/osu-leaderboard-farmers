@@ -116,7 +116,6 @@ def retrieve_beatmap_data(beatmap_id):
     query = f"SELECT * FROM beatmaps WHERE beatmap_id = {beatmap_id}"
     cursor.execute(query)
     beatmap_data = cursor.fetchone()
-    print(beatmap_data)
     conn.close()
     return beatmap_data
 
@@ -171,10 +170,8 @@ def retrieve_1s(mods: str, max_acc: float, min_acc: float, user_id: int, max_len
             for index, mod in enumerate(mod_list):
                 if mod == 'dt' or mod == 'DT':
                     mod_list[index] = 'NC'
-                    print(mod_list)
                 elif mod == 'nc' or mod == 'NC':
                     mod_list[index] = 'DT'
-                    print(mod_list)
 
             mod_int_secondary = convert_mod_list_to_bitwise(mod_list)
 
@@ -194,7 +191,6 @@ def retrieve_1s(mods: str, max_acc: float, min_acc: float, user_id: int, max_len
         rank1s_query += ' AND '
         rank1s_query += ' AND '.join(score_query_params)
 
-    print(rank1s_query)
     cursor.execute(rank1s_query)
     rank1_data = cursor.fetchall()
     csv_header = ['Username', 'Beatmap ID', 'Artist', 'Title', 'Difficulty', 'Star Rating', 'Accuracy', 'Mods',
@@ -283,10 +279,8 @@ def leaderboard(mods: str, max_acc: float, min_acc: float, user_id: int, max_len
             for index, mod in enumerate(mod_list):
                 if mod == 'dt' or mod == 'DT':
                     mod_list[index] = 'NC'
-                    print(mod_list)
                 elif mod == 'nc' or mod == 'NC':
                     mod_list[index] = 'DT'
-                    print(mod_list)
 
             mod_int_secondary = convert_mod_list_to_bitwise(mod_list)
 
@@ -312,7 +306,6 @@ def leaderboard(mods: str, max_acc: float, min_acc: float, user_id: int, max_len
         rank1s_query += ' AND '.join(score_query_params)
 
     rank1s_query += ' GROUP BY username ORDER BY COUNT(*) DESC'
-    print(rank1s_query)
     cursor.execute(rank1s_query)
     leaderboard_output = cursor.fetchall()
 
@@ -334,7 +327,6 @@ def link_account(discord_id: int, osu_username: int):
 def check_account(discord_id: int):
     conn = establish_conn()
     query = f"""SELECT osu_user_id FROM users WHERE discord_id = {discord_id}"""
-    print(discord_id)
     cursor = conn.cursor()
     cursor.execute(query)
     osu_id = cursor.fetchone()

@@ -51,7 +51,8 @@ async def top_1s_leaderboard(ctx, mods: str = None, max_acc: float = None, min_a
 
 @tree.command(name="searchtop1s")
 async def search_top_1s(ctx, mods: str = None, max_acc: float = None, min_acc: float = None, user_id: int = None,
-                        max_length: int = None, min_length: int = None, min_stars: int = None, max_stars: float = None,
+                        max_length: int = None, min_length: int = None, min_stars: float = None,
+                        max_stars: float = None,
                         max_spinners: int = None):
     await ctx.response.send_message("CSV File:")
     buffer = bot_controller.retrieve_1s(mods, max_acc, min_acc, user_id, max_length, min_length, min_stars, max_stars,

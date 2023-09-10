@@ -44,7 +44,7 @@ async def top_1s_leaderboard(ctx: discord.Interaction, mods: str = None, max_acc
 
     embeds = []
 
-    osu_username = bot_controller.check_account(ctx.user.id)[0]
+    osu_username = bot_controller.check_account(ctx.user.id)
 
     if len(leaderboard_data) == 0:
         await ctx.response.send_message('No results for this query', ephemeral=True)
@@ -54,7 +54,7 @@ async def top_1s_leaderboard(ctx: discord.Interaction, mods: str = None, max_acc
             output_data = leaderboard_data[i:i + 10]
             if osu_username != None:
                 for row in leaderboard_data:
-                    if row[1].lower() == osu_username.lower() and osu_username not in [x[1] for x in output_data]:
+                    if row[1].lower() == osu_username[0].lower() and osu_username[0] not in [x[1] for x in output_data]:
                         output_data.append(row)
 
             embed = discord.Embed(

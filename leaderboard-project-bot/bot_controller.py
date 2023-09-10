@@ -91,6 +91,100 @@ def convert_bitwise_to_mod_list(mod_int):
     return mod_list
 
 
+def create_beatmap_query(min_length: int, max_length: int, min_stars: float, max_stars: float, min_ar: float,
+                         max_ar: float, min_od: float, max_od: float, min_spinners: float, max_spinners: float
+                         ):
+    output_header = ""
+    beatmap_ids_query = """SELECT beatmap_id 
+                                FROM beatmaps"""
+    beatmap_query_params = []
+    beatmap_query_args = {}
+
+    if min_length is not None:
+        beatmap_query_params.append(f"length >= %(min_length)s")
+        beatmap_query_args['min_length'] = min_length
+        output_header += f"length >= {min_length}, "
+    if max_length is not None:
+        beatmap_query_params.append(f"length <= %(min_length)s")
+        beatmap_query_args['max_length'] = max_length
+        output_header += f"length <= {max_length}, "
+    if min_stars is not None:
+        beatmap_query_params.append(f"difficulty_rating >= %(min_stars)s")
+        beatmap_query_args['min_stars'] = min_stars
+        output_header += f"min_stars >= {min_stars}, "
+    if max_stars is not None:
+        beatmap_query_params.append(f"difficulty_rating <= %(max_stars)s")
+        beatmap_query_args['max_stars'] = max_stars
+        output_header += f"max_stars <= {max_stars}, "
+    if min_ar is not None:
+        beatmap_query_params.append(f"ar >= %(min_ar)s")
+        beatmap_query_args['min_ar'] = min_ar
+        output_header += f"min_ar >= {min_ar}, "
+    if max_ar is not None:
+        beatmap_query_params.append(f"ar <= %(max_ar)s")
+        beatmap_query_args['max_ar'] = max_ar
+        output_header += f"max_ar <= {max_ar}, "
+    if min_od is not None:
+        beatmap_query_params.append(f"od >= %(min_od)s")
+        beatmap_query_args['min_od'] = min_od
+        output_header += f"min_od >= {min_od}, "
+    if max_od is not None:
+        beatmap_query_params.append(f"od <= %(max_od)s")
+        beatmap_query_args['max_od'] = max_od
+        output_header += f"max_od <= {max_od}, "
+    if min_spinners is not None:
+        beatmap_query_params.append(f"spinners >= %(min_spinners)s")
+        beatmap_query_args['min_spinners'] = min_spinners
+        output_header += f"min_spinners >= {min_spinners}, "
+    if max_spinners is not None:
+        beatmap_query_params.append(f"spinners <= %(max_spinners)s")
+        beatmap_query_args['max_spinners'] = max_spinners
+        output_header += f"max_spinners <= {max_spinners}, "
+
+    if len(beatmap_query_params) != 0:
+        beatmap_ids_query += ' WHERE '
+        beatmap_ids_query += ' AND '.join(beatmap_query_params)
+
+    return beatmap_ids_query, beatmap_query_args, output_header
+
+
+def create_score_query(mods: str, max_acc: float, min_acc: float, user_id: int,
+                       combine_mods: bool):
+    score_query_params = []
+    score_query_args = {}
+
+    if mods is not None:
+        mod_list = [mods[i:i + 2] for i in range(0, len(mods), 2)]
+        if combine_mods:
+            mod_int_primary = convert_mod_list_to_bitwise(mod_list)
+            for index, mod in enumerate(mod_list):
+                if mod == 'dt' or mod == 'DT':
+                    mod_list[index] = 'NC'
+                elif mod == 'nc' or mod == 'NC':
+                    mod_list[index] = 'DT'
+
+            mod_int_secondary = convert_mod_list_to_bitwise(mod_list)
+
+            score_query_params.append(f"mods IN %(mods)s")
+            score_query_args['mods'] = (mod_int_primary, mod_int_secondary)
+
+        else:
+            mod_int = convert_mod_list_to_bitwise(mod_list)
+            score_query_params.append(f"mods = %(mods)s")
+            score_query_args['mods'] = mod_int
+    if min_acc is not None:
+        score_query_params.append(f"accuracy >= %(min_acc)s")
+        score_query_args['min_acc'] = min_acc
+    if max_acc is not None:
+        score_query_params.append(f"accuracy <= %(max_acc)s")
+        score_query_args['max_acc'] = max_acc
+    if user_id is not None:
+        score_query_params.append(f"user_id = %(user_id)s")
+        score_query_args['user_id'] = user_id
+
+    return score_query_params, score_query_args
+
+
 def retrieve_leaderboard(beatmap_id):
     conn = establish_conn()
     cursor = conn.cursor()
@@ -126,72 +220,27 @@ def retrieve_1s(mods: str, max_acc: float, min_acc: float, user_id: int, max_len
     conn = establish_conn()
     cursor = conn.cursor()
 
-    beatmap_ids_query = """SELECT beatmap_id 
-                            FROM beatmaps"""
-    beatmap_query_params = []
+    beatmap_ids_query, beatmap_query_args, output_header = create_beatmap_query(min_length, max_length, min_stars,
+                                                                                max_stars,
+                                                                                min_ar, max_ar, min_od,
+                                                                                max_od, min_spinners, max_spinners)
 
-    if max_length is not None:
-        beatmap_query_params.append(f"length <= {max_length}")
-    if min_length is not None:
-        beatmap_query_params.append(f"length >= {min_length}")
-    if max_stars is not None:
-        beatmap_query_params.append(f"difficulty_rating <= {max_stars}")
-    if min_stars is not None:
-        beatmap_query_params.append(f"difficulty_rating >= {min_stars}")
-    if min_ar is not None:
-        beatmap_query_params.append(f"ar >= {min_ar}")
-    if max_ar is not None:
-        beatmap_query_params.append(f"ar <= {max_ar}")
-    if min_od is not None:
-        beatmap_query_params.append(f"od >= {min_od}")
-    if max_od is not None:
-        beatmap_query_params.append(f"od <= {max_od}")
-    if min_spinners is not None:
-        beatmap_query_params.append(f"spinners >= {min_spinners}")
-    if max_spinners is not None:
-        beatmap_query_params.append(f"spinners <= {max_spinners}")
-
-    if len(beatmap_query_params) != 0:
-        beatmap_ids_query += ' WHERE '
-        beatmap_ids_query += ' AND '.join(beatmap_query_params)
+    score_query_params, score_query_args = create_score_query(mods, max_acc, min_acc, user_id, combine_mods)
 
     rank1s_query = f"""WITH ids AS ({beatmap_ids_query})
-                    SELECT scores.*, beatmaps.* FROM 
-                        scores
-                    INNER JOIN beatmaps
-                        ON scores.beatmap_id = beatmaps.beatmap_id
-                    WHERE scores.beatmap_id in (SELECT beatmap_id FROM ids) AND rank = 1"""
-    score_query_params = []
-
-    if mods is not None:
-        mod_list = [mods[i:i + 2] for i in range(0, len(mods), 2)]
-        if combine_mods:
-            mod_int_primary = convert_mod_list_to_bitwise(mod_list)
-            for index, mod in enumerate(mod_list):
-                if mod == 'dt' or mod == 'DT':
-                    mod_list[index] = 'NC'
-                elif mod == 'nc' or mod == 'NC':
-                    mod_list[index] = 'DT'
-
-            mod_int_secondary = convert_mod_list_to_bitwise(mod_list)
-
-            score_query_params.append(f"mods IN ({mod_int_primary}, {mod_int_secondary})")
-
-        else:
-            mod_int = convert_mod_list_to_bitwise(mod_list)
-            score_query_params.append(f"mods = {mod_int}")
-    if max_acc is not None:
-        score_query_params.append(f"accuracy <= {max_acc}")
-    if min_acc is not None:
-        score_query_params.append(f"accuracy >= {min_acc}")
-    if user_id is not None:
-        score_query_params.append(f"user_id = {user_id}")
+                        SELECT scores.*, beatmaps.* FROM 
+                            scores
+                        INNER JOIN beatmaps
+                            ON scores.beatmap_id = beatmaps.beatmap_id
+                        WHERE scores.beatmap_id IN (SELECT beatmap_id FROM ids) AND rank = 1"""
 
     if len(score_query_params) != 0:
         rank1s_query += ' AND '
         rank1s_query += ' AND '.join(score_query_params)
 
-    cursor.execute(rank1s_query)
+    beatmap_query_args.update(score_query_args)
+
+    cursor.execute(rank1s_query, beatmap_query_args)
     rank1_data = cursor.fetchall()
     csv_header = ['Username', 'Beatmap ID', 'Artist', 'Title', 'Difficulty', 'Star Rating', 'Accuracy', 'Mods',
                   'Length', 'Max Combo', 'Spinners']
@@ -220,93 +269,27 @@ def leaderboard(mods: str, max_acc: float, min_acc: float, user_id: int, max_len
     conn = establish_conn()
     cursor = conn.cursor()
 
-    output_header = ""
+    beatmap_ids_query, beatmap_query_args, output_header = create_beatmap_query(min_length, max_length, min_stars,
+                                                                                max_stars,
+                                                                                min_ar, max_ar, min_od,
+                                                                                max_od, min_spinners, max_spinners)
 
-    beatmap_ids_query = """SELECT beatmap_id 
-                                FROM beatmaps"""
-    beatmap_query_params = []
-
-    if max_length is not None:
-        beatmap_query_params.append(f"length <= {max_length}")
-        output_header += f"length <= {max_length}, "
-    if min_length is not None:
-        beatmap_query_params.append(f"length >= {min_length}")
-        output_header += f"length >= {min_length}, "
-    if min_stars is not None:
-        beatmap_query_params.append(f"difficulty_rating >= {min_stars}")
-        output_header += f"stars >= {min_stars}, "
-    if max_stars is not None:
-        beatmap_query_params.append(f"difficulty_rating <= {max_stars}")
-        output_header += f"stars <= {max_stars}, "
-    if min_ar is not None:
-        beatmap_query_params.append(f"ar >= {min_ar}")
-        output_header += f"AR >= {min_ar}, "
-    if max_ar is not None:
-        beatmap_query_params.append(f"ar <= {max_ar}")
-        output_header += f"AR <= {max_ar}, "
-    if min_od is not None:
-        beatmap_query_params.append(f"od >= {min_od}")
-        output_header += f"OD >= {min_od}, "
-    if max_od is not None:
-        beatmap_query_params.append(f"od <= {max_od}")
-        output_header += f"OD <= {max_od}, "
-    if min_spinners is not None:
-        beatmap_query_params.append(f"spinners >= {min_spinners}")
-        output_header += f"spinners >= {min_spinners}, "
-    if max_spinners is not None:
-        beatmap_query_params.append(f"spinners <= {max_spinners}")
-        output_header += f"spinners <= {max_spinners}, "
-    if tag is not None:
-        beatmap_query_params.append(f"{tag} = ANY (tags)")
-        output_header += f"tag = {tag}, "
-
-    if len(beatmap_query_params) != 0:
-        beatmap_ids_query += ' WHERE '
-        beatmap_ids_query += ' AND '.join(beatmap_query_params)
+    score_query_params, score_query_args = create_score_query(mods, max_acc, min_acc, user_id, combine_mods)
 
     rank1s_query = f"""WITH ids AS ({beatmap_ids_query})
                     SELECT RANK () OVER (ORDER BY COUNT(*) DESC) AS rank, username, COUNT(*) FROM scores
                     WHERE scores.beatmap_id in (SELECT beatmap_id FROM ids) AND rank = 1
                     """
-    score_query_params = []
 
-    if mods is not None:
-        mod_list = [mods[i:i + 2] for i in range(0, len(mods), 2)]
-
-        if combine_mods:
-            output_header += f"mods = {mods} (combined), "
-            mod_int_primary = convert_mod_list_to_bitwise(mod_list)
-            for index, mod in enumerate(mod_list):
-                if mod == 'dt' or mod == 'DT':
-                    mod_list[index] = 'NC'
-                elif mod == 'nc' or mod == 'NC':
-                    mod_list[index] = 'DT'
-
-            mod_int_secondary = convert_mod_list_to_bitwise(mod_list)
-
-            score_query_params.append(f"mods IN ({mod_int_primary}, {mod_int_secondary})")
-
-        else:
-            output_header += f"mods = {mods} (not combined), "
-            mod_int = convert_mod_list_to_bitwise(mod_list)
-            score_query_params.append(f"mods = {mod_int}")
-
-    if max_acc is not None:
-        score_query_params.append(f"accuracy <= {max_acc}")
-        output_header += f"accuracy <= {max_acc}, "
-    if min_acc is not None:
-        score_query_params.append(f"accuracy >= {min_acc}")
-        output_header += f"accuracy >= {min_acc}, "
-    if user_id is not None:
-        score_query_params.append(f"user_id = {user_id}")
-        output_header += f"user id = {user_id}, "
+    beatmap_query_args.update(score_query_args)
 
     if len(score_query_params) != 0:
         rank1s_query += ' AND '
         rank1s_query += ' AND '.join(score_query_params)
 
     rank1s_query += ' GROUP BY username ORDER BY COUNT(*) DESC'
-    cursor.execute(rank1s_query)
+
+    cursor.execute(rank1s_query, beatmap_query_args)
     leaderboard_output = cursor.fetchall()
 
     return leaderboard_output, output_header[:-2]

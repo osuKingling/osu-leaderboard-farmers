@@ -30,10 +30,11 @@ async def retrieve_leaderboard(ctx, beatmap_id: int):
 @tree.command(name="top1sleaderboard")
 async def top_1s_leaderboard(ctx, mods: str = None, max_acc: float = None, min_acc: float = None, user_id: int = None,
                              max_length: int = None, min_length: int = None, min_stars: float = None,
-                             max_stars: float = None,
+                             max_stars: float = None, min_ar: float = None, max_ar: float = None, min_od: float = None,
+                             max_od: float = None,
                              max_spinners: int = None, tag: str = None, page: int = 1):
     leaderboard_data = bot_controller.leaderboard(mods, max_acc, min_acc, user_id, max_length, min_length, min_stars,
-                                                  max_stars, max_spinners, tag)
+                                                  max_stars, min_ar, max_ar, min_od, max_od, max_spinners, tag)
     leaderboard_header = ['Rank', 'Username', 'Count']
 
     embeds = []
@@ -52,11 +53,13 @@ async def top_1s_leaderboard(ctx, mods: str = None, max_acc: float = None, min_a
 @tree.command(name="searchtop1s")
 async def search_top_1s(ctx, mods: str = None, max_acc: float = None, min_acc: float = None, user_id: int = None,
                         max_length: int = None, min_length: int = None, min_stars: float = None,
-                        max_stars: float = None,
-                        max_spinners: int = None):
+                        max_stars: float = None, min_ar: float = None, max_ar: float = None, min_od: float = None,
+                        max_od: float = None,
+                        max_spinners: int = None, tag: str = None):
     await ctx.response.send_message("CSV File:")
     buffer = bot_controller.retrieve_1s(mods, max_acc, min_acc, user_id, max_length, min_length, min_stars, max_stars,
-                                        max_spinners)
+                                        min_ar, max_ar, min_od, max_od,
+                                        max_spinners, tag)
     await ctx.channel.send(file=discord.File(buffer, 'generated-csv.csv'))
 
 

@@ -35,9 +35,11 @@ async def top_1s_leaderboard(ctx, mods: str = None, max_acc: float = None,
                              max_od: float = None,
                              min_spinners: int = None, max_spinners: int = None, tag: str = None, page: int = 1,
                              combine_mods: bool = True):
-    leaderboard_data = bot_controller.leaderboard(mods, max_acc, min_acc, user_id, max_length, min_length, min_stars,
-                                                  max_stars, min_ar, max_ar, min_od, max_od, min_spinners, max_spinners,
-                                                  tag, combine_mods)
+    leaderboard_data, header_text = bot_controller.leaderboard(mods, max_acc, min_acc, user_id, max_length, min_length,
+                                                               min_stars,
+                                                               max_stars, min_ar, max_ar, min_od, max_od, min_spinners,
+                                                               max_spinners,
+                                                               tag, combine_mods)
     leaderboard_header = ['Rank', 'Username', 'Count']
 
     embeds = []
@@ -48,7 +50,7 @@ async def top_1s_leaderboard(ctx, mods: str = None, max_acc: float = None,
 
         for i in range(0, len(leaderboard_data), 10):
             embed = discord.Embed(
-                title=f'#1 Count Leaderboard Test',
+                title=f'#1 Leaderboard: {header_text}',
                 description=f'```{t2a(header=leaderboard_header, body=leaderboard_data[i:i + 10], style=PresetStyle.borderless)}```',
                 color=0xFF5733)
             embed.set_footer(text=f"Page {page}/{-(-len(leaderboard_data) // 10)}")

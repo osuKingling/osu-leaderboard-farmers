@@ -213,32 +213,45 @@ def leaderboard(mods: str, max_acc: float, min_acc: float, user_id: int, max_len
     conn = establish_conn()
     cursor = conn.cursor()
 
+    output_header = ""
+
     beatmap_ids_query = """SELECT beatmap_id 
                                 FROM beatmaps"""
     beatmap_query_params = []
 
     if max_length is not None:
         beatmap_query_params.append(f"length <= {max_length}")
+        output_header += f"length <= {max_length}, "
     if min_length is not None:
         beatmap_query_params.append(f"length >= {min_length}")
-    if max_stars is not None:
-        beatmap_query_params.append(f"difficulty_rating <= {max_stars}")
+        output_header += f"length >= {min_length}, "
     if min_stars is not None:
         beatmap_query_params.append(f"difficulty_rating >= {min_stars}")
+        output_header += f"stars >= {min_stars}, "
+    if max_stars is not None:
+        beatmap_query_params.append(f"difficulty_rating <= {max_stars}")
+        output_header += f"stars <= {max_stars}, "
     if min_ar is not None:
         beatmap_query_params.append(f"ar >= {min_ar}")
+        output_header += f"AR >= {min_ar}, "
     if max_ar is not None:
         beatmap_query_params.append(f"ar <= {max_ar}")
+        output_header += f"AR <= {max_ar}, "
     if min_od is not None:
         beatmap_query_params.append(f"od >= {min_od}")
+        output_header += f"OD >= {min_od}, "
     if max_od is not None:
         beatmap_query_params.append(f"od <= {max_od}")
+        output_header += f"OD <= {max_od}, "
     if min_spinners is not None:
         beatmap_query_params.append(f"spinners >= {min_spinners}")
+        output_header += f"spinners >= {min_spinners}, "
     if max_spinners is not None:
         beatmap_query_params.append(f"spinners <= {max_spinners}")
+        output_header += f"spinners <= {max_spinners}, "
     if tag is not None:
         beatmap_query_params.append(f"{tag} = ANY (tags)")
+        output_header += f"tag = {tag}, "
 
     if len(beatmap_query_params) != 0:
         beatmap_ids_query += ' WHERE '
@@ -254,6 +267,7 @@ def leaderboard(mods: str, max_acc: float, min_acc: float, user_id: int, max_len
         mod_list = [mods[i:i + 2] for i in range(0, len(mods), 2)]
 
         if combine_mods:
+            output_header += f"mods = {mods} (combined), "
             mod_int_primary = convert_mod_list_to_bitwise(mod_list)
             for index, mod in enumerate(mod_list):
                 if mod == 'dt' or mod == 'DT':
@@ -268,14 +282,19 @@ def leaderboard(mods: str, max_acc: float, min_acc: float, user_id: int, max_len
             score_query_params.append(f"mods IN ({mod_int_primary}, {mod_int_secondary})")
 
         else:
+            output_header += f"mods = {mods} (not combined), "
             mod_int = convert_mod_list_to_bitwise(mod_list)
             score_query_params.append(f"mods = {mod_int}")
+
     if max_acc is not None:
         score_query_params.append(f"accuracy <= {max_acc}")
+        output_header += f"accuracy <= {max_acc}, "
     if min_acc is not None:
         score_query_params.append(f"accuracy >= {min_acc}")
+        output_header += f"accuracy >= {min_acc}, "
     if user_id is not None:
         score_query_params.append(f"user_id = {user_id}")
+        output_header += f"user id = {user_id}, "
 
     if len(score_query_params) != 0:
         rank1s_query += ' AND '
@@ -286,7 +305,7 @@ def leaderboard(mods: str, max_acc: float, min_acc: float, user_id: int, max_len
     cursor.execute(rank1s_query)
     leaderboard_output = cursor.fetchall()
 
-    return leaderboard_output
+    return leaderboard_output, output_header[:-2]
 
 
 def link_account(discord_id: int, osu_id: int):

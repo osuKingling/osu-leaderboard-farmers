@@ -28,6 +28,7 @@ def establish_conn():
 def convert_mod_list_to_bitwise(mods):
     mod_int = 0
     for mod in mods:
+        mod = mod.upper()
         if mod == 'NF':
             mod_int += 1
         if mod == 'EZ':
@@ -52,7 +53,7 @@ def convert_mod_list_to_bitwise(mods):
             mod_int += 1024
         if mod == 'PF':
             mod_int += 2048
-        if mod == 'PF':
+        if mod == 'TD':
             mod_int += 4096
 
     return mod_int

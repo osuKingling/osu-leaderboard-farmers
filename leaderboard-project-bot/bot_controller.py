@@ -66,10 +66,12 @@ def convert_bitwise_to_mod_list(mod_int):
     if mod_int & 1 << 2:   mod_list.append('HD')
     if mod_int & 1 << 3:   mod_list.append('HR')
     if mod_int & 1 << 4:   mod_list.append('SD')
-    if mod_int & 1 << 5:   mod_list.append('DT')
     if mod_int & 1 << 6:   mod_list.append('RX')
     if mod_int & 1 << 7:   mod_list.append('HT')
-    if mod_int & 1 << 8:   mod_list.append('NC')
+    if mod_int & 1 << 8:
+        mod_list.append('NC')
+    elif mod_int & 1 << 5:
+        mod_list.append('DT')
     if mod_int & 1 << 9:   mod_list.append('FL')
     if mod_int & 1 << 10:  mod_list.append('SO')
     if mod_int & 1 << 11:  mod_list.append('PF')
@@ -110,7 +112,7 @@ def retrieve_beatmap_data(beatmap_id):
 
 def retrieve_1s(mods: str, max_acc: float, min_acc: float, user_id: int, max_length: int, min_length: int,
                 min_stars: float, max_stars: float, min_ar: float, max_ar: float, min_od: float, max_od: float,
-                min_spinners: int, max_spinners: int, tag: str):
+                min_spinners: int, max_spinners: int, tag: str, combine_mods: bool):
     conn = establish_conn()
     cursor = conn.cursor()
 
@@ -153,8 +155,23 @@ def retrieve_1s(mods: str, max_acc: float, min_acc: float, user_id: int, max_len
 
     if mods is not None:
         mod_list = [mods[i:i + 2] for i in range(0, len(mods), 2)]
-        mod_int = convert_mod_list_to_bitwise(mod_list)
-        score_query_params.append(f"mods = {mod_int}")
+        if combine_mods:
+            mod_int_primary = convert_mod_list_to_bitwise(mod_list)
+            for index, mod in enumerate(mod_list):
+                if mod == 'dt' or mod == 'DT':
+                    mod_list[index] = 'NC'
+                    print(mod_list)
+                elif mod == 'nc' or mod == 'NC':
+                    mod_list[index] = 'DT'
+                    print(mod_list)
+
+            mod_int_secondary = convert_mod_list_to_bitwise(mod_list)
+
+            score_query_params.append(f"mods IN ({mod_int_primary}, {mod_int_secondary})")
+
+        else:
+            mod_int = convert_mod_list_to_bitwise(mod_list)
+            score_query_params.append(f"mods = {mod_int}")
     if max_acc is not None:
         score_query_params.append(f"accuracy <= {max_acc}")
     if min_acc is not None:
@@ -191,8 +208,8 @@ def retrieve_1s(mods: str, max_acc: float, min_acc: float, user_id: int, max_len
 
 
 def leaderboard(mods: str, max_acc: float, min_acc: float, user_id: int, max_length: int, min_length: int,
-                min_stars: int, max_stars: float, min_ar: float, max_ar: float, min_od: float, max_od: float,
-                min_spinners: int, max_spinners: int, tag: str):
+                min_stars: float, max_stars: float, min_ar: float, max_ar: float, min_od: float, max_od: float,
+                min_spinners: int, max_spinners: int, tag: str, combine_mods: bool):
     conn = establish_conn()
     cursor = conn.cursor()
 
@@ -235,8 +252,24 @@ def leaderboard(mods: str, max_acc: float, min_acc: float, user_id: int, max_len
 
     if mods is not None:
         mod_list = [mods[i:i + 2] for i in range(0, len(mods), 2)]
-        mod_int = convert_mod_list_to_bitwise(mod_list)
-        score_query_params.append(f"mods = {mod_int}")
+
+        if combine_mods:
+            mod_int_primary = convert_mod_list_to_bitwise(mod_list)
+            for index, mod in enumerate(mod_list):
+                if mod == 'dt' or mod == 'DT':
+                    mod_list[index] = 'NC'
+                    print(mod_list)
+                elif mod == 'nc' or mod == 'NC':
+                    mod_list[index] = 'DT'
+                    print(mod_list)
+
+            mod_int_secondary = convert_mod_list_to_bitwise(mod_list)
+
+            score_query_params.append(f"mods IN ({mod_int_primary}, {mod_int_secondary})")
+
+        else:
+            mod_int = convert_mod_list_to_bitwise(mod_list)
+            score_query_params.append(f"mods = {mod_int}")
     if max_acc is not None:
         score_query_params.append(f"accuracy <= {max_acc}")
     if min_acc is not None:
@@ -249,7 +282,7 @@ def leaderboard(mods: str, max_acc: float, min_acc: float, user_id: int, max_len
         rank1s_query += ' AND '.join(score_query_params)
 
     rank1s_query += ' GROUP BY username ORDER BY COUNT(*) DESC'
-
+    print(rank1s_query)
     cursor.execute(rank1s_query)
     leaderboard_output = cursor.fetchall()
 

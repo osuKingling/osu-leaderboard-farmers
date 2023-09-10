@@ -66,34 +66,34 @@ class DatabaseManager:
                 
             );           
         """,
-        """
-            CREATE TABLE IF NOT EXISTS scores (
-            score_id BIGINT PRIMARY KEY,
-            username TEXT NOT NULL,
-            user_id INT NOT NULL,
-            beatmap_id INT NOT NULL,
-            score BIGINT NOT NULL,
-            accuracy float4 NOT NULL,
-            combo INT NOT NULL,
-            mods INT NOT NULL,
-            count_300 INT NOT NULL,
-            count_100 INT NOT NULL,
-            count_50 INT NOT NULL,
-            count_miss INT NOT NULL,
-            pp float4 NOT NULL,
-            created_at TIMESTAMP NOT NULL,
-            rank INT NOT NULL          
-           );           
-        """,
-        """
-        CREATE UNIQUE INDEX idx_scores_beatmapid_rank ON scores (beatmap_id, rank);
-        """,
-        """
-            CREATE TABLE IF NOT EXISTS users (
-            discord_id BIGINT PRIMARY KEY,
-            osu_user_id INT          
-           );           
-        """]
+                   """
+                       CREATE TABLE IF NOT EXISTS scores (
+                       score_id BIGINT PRIMARY KEY,
+                       username TEXT NOT NULL,
+                       user_id INT NOT NULL,
+                       beatmap_id INT NOT NULL,
+                       score BIGINT NOT NULL,
+                       accuracy float4 NOT NULL,
+                       combo INT NOT NULL,
+                       mods INT NOT NULL,
+                       count_300 INT NOT NULL,
+                       count_100 INT NOT NULL,
+                       count_50 INT NOT NULL,
+                       count_miss INT NOT NULL,
+                       pp float4 NOT NULL,
+                       created_at TIMESTAMP NOT NULL,
+                       rank INT NOT NULL          
+                      );           
+                   """,
+                   """
+                   CREATE UNIQUE INDEX idx_scores_beatmapid_rank ON scores (beatmap_id, rank);
+                   """,
+                   """
+                       CREATE TABLE IF NOT EXISTS users (
+                       discord_id BIGINT PRIMARY KEY,
+                       osu_user_id INT          
+                      );           
+                   """]
 
         try:
             cur = self.conn.cursor()
@@ -271,10 +271,12 @@ class DatabaseManager:
         if mod_int & 1 << 2:   mod_list.append('HD')
         if mod_int & 1 << 3:   mod_list.append('HR')
         if mod_int & 1 << 4:   mod_list.append('SD')
-        if mod_int & 1 << 5:   mod_list.append('DT')
         if mod_int & 1 << 6:   mod_list.append('RX')
         if mod_int & 1 << 7:   mod_list.append('HT')
-        if mod_int & 1 << 8:   mod_list.append('NC')
+        if mod_int & 1 << 8:
+            mod_list.append('NC')
+        elif mod_int & 1 << 5:
+            mod_list.append('DT')
         if mod_int & 1 << 9:  mod_list.append('FL')
         if mod_int & 1 << 10:  mod_list.append('SO')
         if mod_int & 1 << 11:  mod_list.append('PF')

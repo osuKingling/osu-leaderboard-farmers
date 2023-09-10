@@ -152,6 +152,7 @@ def create_score_query(mods: str, max_acc: float, min_acc: float, user_id: int,
                        combine_mods: bool):
     score_query_params = []
     score_query_args = {}
+    output_header = ""
 
     if mods is not None:
         mod_list = [mods[i:i + 2] for i in range(0, len(mods), 2)]
@@ -167,22 +168,27 @@ def create_score_query(mods: str, max_acc: float, min_acc: float, user_id: int,
 
             score_query_params.append(f"mods IN %(mods)s")
             score_query_args['mods'] = (mod_int_primary, mod_int_secondary)
+            output_header += f"mods = {mods}, "
 
         else:
             mod_int = convert_mod_list_to_bitwise(mod_list)
             score_query_params.append(f"mods = %(mods)s")
             score_query_args['mods'] = mod_int
+            output_header += f"mods = {mods}, "
     if min_acc is not None:
         score_query_params.append(f"accuracy >= %(min_acc)s")
         score_query_args['min_acc'] = min_acc
+        output_header += f"min_acc = {min_acc}, "
     if max_acc is not None:
         score_query_params.append(f"accuracy <= %(max_acc)s")
         score_query_args['max_acc'] = max_acc
+        output_header += f"max_acc = {max_acc}, "
     if user_id is not None:
         score_query_params.append(f"user_id = %(user_id)s")
         score_query_args['user_id'] = user_id
+        output_header += f"user_id = {user_id}, "
 
-    return score_query_params, score_query_args
+    return score_query_params, score_query_args, output_header
 
 
 def retrieve_leaderboard(beatmap_id):
@@ -220,12 +226,15 @@ def retrieve_1s(mods: str, max_acc: float, min_acc: float, user_id: int, max_len
     conn = establish_conn()
     cursor = conn.cursor()
 
-    beatmap_ids_query, beatmap_query_args, output_header = create_beatmap_query(min_length, max_length, min_stars,
-                                                                                max_stars,
-                                                                                min_ar, max_ar, min_od,
-                                                                                max_od, min_spinners, max_spinners)
+    beatmap_ids_query, beatmap_query_args, beatmap_output_header = create_beatmap_query(min_length, max_length,
+                                                                                        min_stars,
+                                                                                        max_stars,
+                                                                                        min_ar, max_ar, min_od,
+                                                                                        max_od, min_spinners,
+                                                                                        max_spinners)
 
-    score_query_params, score_query_args = create_score_query(mods, max_acc, min_acc, user_id, combine_mods)
+    score_query_params, score_query_args, score_output_header = create_score_query(mods, max_acc, min_acc, user_id,
+                                                                                   combine_mods)
 
     rank1s_query = f"""WITH ids AS ({beatmap_ids_query})
                         SELECT scores.*, beatmaps.* FROM 
@@ -239,6 +248,7 @@ def retrieve_1s(mods: str, max_acc: float, min_acc: float, user_id: int, max_len
         rank1s_query += ' AND '.join(score_query_params)
 
     beatmap_query_args.update(score_query_args)
+    output_header = score_output_header + beatmap_output_header
 
     cursor.execute(rank1s_query, beatmap_query_args)
     rank1_data = cursor.fetchall()
@@ -269,12 +279,15 @@ def leaderboard(mods: str, max_acc: float, min_acc: float, user_id: int, max_len
     conn = establish_conn()
     cursor = conn.cursor()
 
-    beatmap_ids_query, beatmap_query_args, output_header = create_beatmap_query(min_length, max_length, min_stars,
-                                                                                max_stars,
-                                                                                min_ar, max_ar, min_od,
-                                                                                max_od, min_spinners, max_spinners)
+    beatmap_ids_query, beatmap_query_args, beatmap_output_header = create_beatmap_query(min_length, max_length,
+                                                                                        min_stars,
+                                                                                        max_stars,
+                                                                                        min_ar, max_ar, min_od,
+                                                                                        max_od, min_spinners,
+                                                                                        max_spinners)
 
-    score_query_params, score_query_args = create_score_query(mods, max_acc, min_acc, user_id, combine_mods)
+    score_query_params, score_query_args, score_output_header = create_score_query(mods, max_acc, min_acc, user_id,
+                                                                                   combine_mods)
 
     rank1s_query = f"""WITH ids AS ({beatmap_ids_query})
                     SELECT RANK () OVER (ORDER BY COUNT(*) DESC) AS rank, username, COUNT(*) FROM scores
@@ -282,6 +295,7 @@ def leaderboard(mods: str, max_acc: float, min_acc: float, user_id: int, max_len
                     """
 
     beatmap_query_args.update(score_query_args)
+    output_header = score_output_header + beatmap_output_header
 
     if len(score_query_params) != 0:
         rank1s_query += ' AND '

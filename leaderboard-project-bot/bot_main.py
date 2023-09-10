@@ -29,7 +29,7 @@ async def retrieve_leaderboard(ctx, beatmap_id: int):
 
 @tree.command(name="top1sleaderboard")
 async def top_1s_leaderboard(ctx, mods: str = None, max_acc: float = None, min_acc: float = None, user_id: int = None,
-                             max_length: int = None, min_length: int = None, min_stars: int = None,
+                             max_length: int = None, min_length: int = None, min_stars: float = None,
                              max_stars: float = None,
                              max_spinners: int = None, tag: str = None, page: int = 1):
     leaderboard_data = bot_controller.leaderboard(mods, max_acc, min_acc, user_id, max_length, min_length, min_stars,

@@ -133,9 +133,9 @@ def retrieve_1s(mods: str, max_acc: float, min_acc: float, user_id: int, max_len
     if max_ar is not None:
         beatmap_query_params.append(f"ar <= {max_ar}")
     if min_od is not None:
-        beatmap_query_params.append(f"ar >= {min_od}")
+        beatmap_query_params.append(f"od >= {min_od}")
     if max_od is not None:
-        beatmap_query_params.append(f"ar <= {max_od}")
+        beatmap_query_params.append(f"od <= {max_od}")
     if min_spinners is not None:
         beatmap_query_params.append(f"spinners >= {min_spinners}")
     if max_spinners is not None:
@@ -230,9 +230,9 @@ def leaderboard(mods: str, max_acc: float, min_acc: float, user_id: int, max_len
     if max_ar is not None:
         beatmap_query_params.append(f"ar <= {max_ar}")
     if min_od is not None:
-        beatmap_query_params.append(f"ar >= {min_od}")
+        beatmap_query_params.append(f"od >= {min_od}")
     if max_od is not None:
-        beatmap_query_params.append(f"ar <= {max_od}")
+        beatmap_query_params.append(f"od <= {max_od}")
     if min_spinners is not None:
         beatmap_query_params.append(f"spinners >= {min_spinners}")
     if max_spinners is not None:

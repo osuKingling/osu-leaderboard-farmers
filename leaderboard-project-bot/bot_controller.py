@@ -105,7 +105,7 @@ def create_beatmap_query(min_length: int, max_length: int, min_stars: float, max
         beatmap_query_args['min_length'] = min_length
         output_header += f"length >= {min_length}, "
     if max_length is not None:
-        beatmap_query_params.append(f"length <= %(min_length)s")
+        beatmap_query_params.append(f"length <= %(max_length)s")
         beatmap_query_args['max_length'] = max_length
         output_header += f"length <= {max_length}, "
     if min_stars is not None:

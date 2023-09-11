@@ -3,6 +3,7 @@ import os
 import bot_controller
 from discord import app_commands
 from table2ascii import table2ascii as t2a, PresetStyle
+import time
 
 DISCORD_TOKEN = os.environ['DISCORD_TOKEN']
 
@@ -36,6 +37,7 @@ async def top_1s_leaderboard(ctx: discord.Interaction, mods: str = None, max_acc
                              max_od: float = None,
                              min_spinners: int = None, max_spinners: int = None, tag: str = None, page: int = 1,
                              combine_mods: bool = True):
+    st = time.time()
     await ctx.response.defer()
 
     leaderboard_data, header_text = bot_controller.leaderboard(mods, max_acc, min_acc, user_id, max_length, min_length,
@@ -48,6 +50,7 @@ async def top_1s_leaderboard(ctx: discord.Interaction, mods: str = None, max_acc
     embeds = []
 
     osu_username = bot_controller.check_account(ctx.user.id)
+    et = time.time()
 
     if len(leaderboard_data) == 0:
         await ctx.followup.send('No results for this query', ephemeral=True)
@@ -64,7 +67,7 @@ async def top_1s_leaderboard(ctx: discord.Interaction, mods: str = None, max_acc
                 title=f'#1 Leaderboard: {header_text}',
                 description=f'```{t2a(header=leaderboard_header, body=output_data, style=PresetStyle.borderless)}```',
                 color=0xFF5733)
-            embed.set_footer(text=f"Page {page}/{-(-len(leaderboard_data) // 10)}")
+            embed.set_footer(text=f"Page {page}/{-(-len(leaderboard_data) // 10)} | Elapsed Time: {round(et - st, 2)}s")
             embeds.append(embed)
 
         await ctx.followup.send(embed=embeds[page - 1])

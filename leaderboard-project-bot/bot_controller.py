@@ -308,11 +308,12 @@ def leaderboard(mods: str, max_acc: float, min_acc: float, user_id: int, max_len
     return leaderboard_output, output_header[:-2]
 
 
-def link_account(discord_id: int, osu_username: int):
+def link_account(discord_id: int, osu_username: str):
     conn = establish_conn()
     query = f"""INSERT INTO users
                 VALUES (%(discord_id)s, %(osu_username)s)
-                ON CONFLICT (discord_id) DO UPDATE SET osu_username = %(osu_username)s"""
+                ON CONFLICT (discord_id) 
+                DO UPDATE SET osu_username = %(osu_username)s"""
     cursor = conn.cursor()
     cursor.execute(query, {'discord_id': discord_id, 'osu_username': osu_username})
     cursor.close()
@@ -322,7 +323,7 @@ def link_account(discord_id: int, osu_username: int):
 
 def check_account(discord_id: int):
     conn = establish_conn()
-    query = f"""SELECT osu_user_id FROM users WHERE discord_id = {discord_id}"""
+    query = f"""SELECT osu_username FROM users WHERE discord_id = {discord_id}"""
     cursor = conn.cursor()
     cursor.execute(query)
     osu_id = cursor.fetchone()

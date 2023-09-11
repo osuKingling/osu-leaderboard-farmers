@@ -132,9 +132,10 @@ class DatabaseManager:
             INSERT INTO scores
             VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
             ON CONFLICT (beatmap_id, rank)
-            DO update 
+            DO UPDATE 
             SET (score_id, username, user_id, score, accuracy, combo, mods, count_300, count_100, count_50, count_miss, pp, created_at) =
             (EXCLUDED.score_id, EXCLUDED.username, EXCLUDED.user_id, EXCLUDED.score, EXCLUDED.accuracy, EXCLUDED.combo, EXCLUDED.mods, EXCLUDED.count_300, EXCLUDED. count_100, EXCLUDED.count_50, EXCLUDED.count_miss, EXCLUDED.pp, EXCLUDED.created_at)
+            WHERE EXCLUDED.score_id IS DISTINCT FROM scores.score_id
         """
 
         try:

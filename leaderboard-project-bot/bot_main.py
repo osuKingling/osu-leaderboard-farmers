@@ -35,11 +35,11 @@ async def top_1s_leaderboard(ctx: discord.Interaction, mods: str = None, max_acc
                              max_length: int = None, min_length: int = None, min_stars: float = None,
                              max_stars: float = None, min_ar: float = None, max_ar: float = None, min_od: float = None,
                              max_od: float = None,
-                             min_spinners: int = None, max_spinners: int = None, tag: str = None, page: int = 1,
+                             min_spinners: int = None, max_spinners: int = None, tags: str = None, page: int = 1,
                              combine_mods: bool = True):
     st = time.time()
     await ctx.response.defer()
-
+    tag = tags.split()
     leaderboard_data, header_text = bot_controller.leaderboard(mods, max_acc, min_acc, user_id, max_length, min_length,
                                                                min_stars,
                                                                max_stars, min_ar, max_ar, min_od, max_od, min_spinners,
@@ -79,8 +79,10 @@ async def search_top_1s(ctx: discord.Interaction, mods: str = None, max_acc: flo
                         max_length: int = None, min_length: int = None, min_stars: float = None,
                         max_stars: float = None, min_ar: float = None, max_ar: float = None, min_od: float = None,
                         max_od: float = None,
-                        min_spinners: int = None, max_spinners: int = None, tag: str = None, combine_mods: bool = True):
+                        min_spinners: int = None, max_spinners: int = None, tags: str = None,
+                        combine_mods: bool = True):
     await ctx.response.defer()
+    tag = tags.split()
     buffer = bot_controller.retrieve_1s(mods, max_acc, min_acc, user_id, max_length, min_length, min_stars, max_stars,
                                         min_ar, max_ar, min_od, max_od,
                                         min_spinners, max_spinners, tag, combine_mods)

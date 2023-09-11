@@ -5,6 +5,7 @@ import os
 import csv
 import io
 from table2ascii import table2ascii as t2a, PresetStyle
+from typing import List
 
 
 def establish_conn():
@@ -92,7 +93,8 @@ def convert_bitwise_to_mod_list(mod_int):
 
 
 def create_beatmap_query(min_length: int, max_length: int, min_stars: float, max_stars: float, min_ar: float,
-                         max_ar: float, min_od: float, max_od: float, min_spinners: float, max_spinners: float
+                         max_ar: float, min_od: float, max_od: float, min_spinners: float, max_spinners: float,
+                         tags: List[str]
                          ):
     output_header = ""
     beatmap_ids_query = """SELECT beatmap_id 
@@ -140,6 +142,11 @@ def create_beatmap_query(min_length: int, max_length: int, min_stars: float, max
         beatmap_query_params.append(f"spinners <= %(max_spinners)s")
         beatmap_query_args['max_spinners'] = max_spinners
         output_header += f"max_spinners <= {max_spinners}, "
+    if tags is not None:
+        for index, tag in enumerate(tags):
+            beatmap_query_params.append(f"%(tag{index})s = ANY(tags)")
+            beatmap_query_args[f'tag{index}'] = tag
+        output_header += f"tag =  {tags}, "
 
     if len(beatmap_query_params) != 0:
         beatmap_ids_query += ' WHERE '
@@ -221,7 +228,7 @@ def retrieve_beatmap_data(beatmap_id):
 
 def retrieve_1s(mods: str, max_acc: float, min_acc: float, user_id: int, max_length: int, min_length: int,
                 min_stars: float, max_stars: float, min_ar: float, max_ar: float, min_od: float, max_od: float,
-                min_spinners: int, max_spinners: int, tag: str, combine_mods: bool):
+                min_spinners: int, max_spinners: int, tags: List[str], combine_mods: bool):
     conn = establish_conn()
     cursor = conn.cursor()
 
@@ -230,7 +237,7 @@ def retrieve_1s(mods: str, max_acc: float, min_acc: float, user_id: int, max_len
                                                                                         max_stars,
                                                                                         min_ar, max_ar, min_od,
                                                                                         max_od, min_spinners,
-                                                                                        max_spinners)
+                                                                                        max_spinners, tags)
 
     score_query_params, score_query_args, score_output_header = create_score_query(mods, max_acc, min_acc, user_id,
                                                                                    combine_mods)
@@ -274,7 +281,7 @@ def retrieve_1s(mods: str, max_acc: float, min_acc: float, user_id: int, max_len
 
 def leaderboard(mods: str, max_acc: float, min_acc: float, user_id: int, max_length: int, min_length: int,
                 min_stars: float, max_stars: float, min_ar: float, max_ar: float, min_od: float, max_od: float,
-                min_spinners: int, max_spinners: int, tag: str, combine_mods: bool):
+                min_spinners: int, max_spinners: int, tags: List[str], combine_mods: bool):
     conn = establish_conn()
     cursor = conn.cursor()
 
@@ -283,7 +290,7 @@ def leaderboard(mods: str, max_acc: float, min_acc: float, user_id: int, max_len
                                                                                         max_stars,
                                                                                         min_ar, max_ar, min_od,
                                                                                         max_od, min_spinners,
-                                                                                        max_spinners)
+                                                                                        max_spinners, tags)
 
     score_query_params, score_query_args, score_output_header = create_score_query(mods, max_acc, min_acc, user_id,
                                                                                    combine_mods)

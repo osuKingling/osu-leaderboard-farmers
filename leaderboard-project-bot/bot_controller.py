@@ -96,7 +96,7 @@ def convert_bitwise_to_mod_list(mod_int):
 
 def create_beatmap_query(min_length: int, max_length: int, min_stars: float, max_stars: float, min_ar: float,
                          max_ar: float, min_od: float, max_od: float, min_spinners: float, max_spinners: float,
-                         tags: List[str]
+                         tags: List[str], year: int
                          ):
     output_header = ""
     beatmap_ids_query = """SELECT beatmap_id 
@@ -150,6 +150,14 @@ def create_beatmap_query(min_length: int, max_length: int, min_stars: float, max
             beatmap_query_args[f'tag{index}'] = tag
         output_header += f"tag =  {tags}, "
 
+    if year is not None:
+        start_year = f"{year}-1-1"
+        end_year = f"{year + 1}-1-1"
+        beatmap_query_params.append(f"approved_date >= %(start_year)s AND approved_date <= %(end_year)s")
+        beatmap_query_args[f'start_year'] = start_year
+        beatmap_query_args[f'end_year'] = end_year
+        output_header += f"map year =  {year}, "
+
     if len(beatmap_query_params) != 0:
         beatmap_ids_query += ' WHERE '
         beatmap_ids_query += ' AND '.join(beatmap_query_params)
@@ -157,7 +165,7 @@ def create_beatmap_query(min_length: int, max_length: int, min_stars: float, max
     return beatmap_ids_query, beatmap_query_args, output_header
 
 
-def create_score_query(mods: str, max_acc: float, min_acc: float, user_id: int, combine_mods: bool):
+def create_score_query(mods: str, max_acc: float, min_acc: float, user_id: int, year: int, combine_mods: bool):
     score_query_params = []
     score_query_args = {}
     output_header = ""
@@ -204,6 +212,13 @@ def create_score_query(mods: str, max_acc: float, min_acc: float, user_id: int, 
         score_query_params.append(f"user_id = %(user_id)s")
         score_query_args['user_id'] = user_id
         output_header += f"user_id = {user_id}, "
+    if year is not None:
+        start_year = f"{year}-1-1"
+        end_year = f"{year + 1}-1-1"
+        score_query_params.append(f"created_at >= %(start_year)s AND created_at <= %(end_year)s")
+        score_query_args[f'start_year'] = start_year
+        score_query_args[f'end_year'] = end_year
+        output_header += f"map year =  {year}, "
 
     return score_query_params, score_query_args, output_header
 
@@ -239,7 +254,8 @@ def retrieve_beatmap_data(beatmap_id):
 
 def retrieve_1s(mods: str, max_acc: float, min_acc: float, user_id: int, max_length: int, min_length: int,
                 min_stars: float, max_stars: float, min_ar: float, max_ar: float, min_od: float, max_od: float,
-                min_spinners: int, max_spinners: int, tags: List[str], combine_mods: bool):
+                min_spinners: int, max_spinners: int, tags: List[str], map_year: int, score_year: int,
+                combine_mods: bool):
     conn = establish_conn()
     cursor = conn.cursor()
 
@@ -248,9 +264,10 @@ def retrieve_1s(mods: str, max_acc: float, min_acc: float, user_id: int, max_len
                                                                                         max_stars,
                                                                                         min_ar, max_ar, min_od,
                                                                                         max_od, min_spinners,
-                                                                                        max_spinners, tags)
+                                                                                        max_spinners, tags, map_year)
 
     score_query_params, score_query_args, score_output_header = create_score_query(mods, max_acc, min_acc, user_id,
+                                                                                   score_year,
                                                                                    combine_mods)
 
     rank1s_query = f"""WITH ids AS ({beatmap_ids_query})
@@ -292,7 +309,8 @@ def retrieve_1s(mods: str, max_acc: float, min_acc: float, user_id: int, max_len
 
 def leaderboard(mods: str, max_acc: float, min_acc: float, user_id: int, max_length: int, min_length: int,
                 min_stars: float, max_stars: float, min_ar: float, max_ar: float, min_od: float, max_od: float,
-                min_spinners: int, max_spinners: int, tags: List[str], combine_mods: bool):
+                min_spinners: int, max_spinners: int, tags: List[str], map_year: int, score_year: int,
+                combine_mods: bool):
     conn = establish_conn()
     cursor = conn.cursor()
 
@@ -301,9 +319,10 @@ def leaderboard(mods: str, max_acc: float, min_acc: float, user_id: int, max_len
                                                                                         max_stars,
                                                                                         min_ar, max_ar, min_od,
                                                                                         max_od, min_spinners,
-                                                                                        max_spinners, tags)
+                                                                                        max_spinners, tags, map_year)
 
     score_query_params, score_query_args, score_output_header = create_score_query(mods, max_acc, min_acc, user_id,
+                                                                                   score_year,
                                                                                    combine_mods)
 
     rank1s_query = f"""WITH ids AS ({beatmap_ids_query})

@@ -90,11 +90,21 @@ async def search_top_1s(ctx: discord.Interaction, mods: str = None, max_acc: flo
         tag = tags.split()
     else:
         tag = None
-        
+
     buffer = bot_controller.retrieve_1s(mods, max_acc, min_acc, user_id, max_length, min_length, min_stars, max_stars,
                                         min_ar, max_ar, min_od, max_od,
                                         min_spinners, max_spinners, tag, combine_mods)
     await ctx.followup.send(file=discord.File(buffer, 'generated-csv.csv'))
+
+
+@tree.command(name='user_profile')
+async def user_profile(interaction: discord.Interaction, _username: str = None):
+    if _username is None:
+        username = bot_controller.check_account(interaction.user.id)
+    else:
+        username = _username
+
+    output_stats = bot_controller.user_stats_lookup(username)
 
 
 @tree.command(name="link_account")

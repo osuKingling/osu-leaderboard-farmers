@@ -1,5 +1,7 @@
 from urllib.parse import urlparse
 
+import ossapi
+
 import psycopg2
 import os
 import csv
@@ -159,28 +161,37 @@ def create_score_query(mods: str, max_acc: float, min_acc: float, user_id: int, 
     score_query_params = []
     score_query_args = {}
     output_header = ""
+    odd_mods = ['', 'PF', 'SD']
+    out_mods = ()
 
     if mods is not None:
         mod_list = [mods[i:i + 2] for i in range(0, len(mods), 2)]
         if combine_mods:
-            mod_int_primary = convert_mod_list_to_bitwise(mod_list)
-            for index, mod in enumerate(mod_list):
-                if mod == 'dt' or mod == 'DT':
-                    mod_list[index] = 'NC'
-                elif mod == 'nc' or mod == 'NC':
-                    mod_list[index] = 'DT'
 
-            mod_int_secondary = convert_mod_list_to_bitwise(mod_list)
+            for subjmod in odd_mods:
+                if 'PF' in mod_list:
+                    mod_list.remove('PF')
+                if 'SD' in mod_list:
+                    mod_list.remove('SD')
+                mod_list.append(subjmod)
+                out_mods += (convert_mod_list_to_bitwise(mod_list),)
+                for index, mod in enumerate(mod_list):
+                    if mod == 'dt' or mod == 'DT':
+                        mod_list[index] = 'NC'
+                        out_mods += (convert_mod_list_to_bitwise(mod_list),)
+                    elif mod == 'nc' or mod == 'NC':
+                        mod_list[index] = 'DT'
+                        out_mods += (convert_mod_list_to_bitwise(mod_list),)
 
             score_query_params.append(f"mods IN %(mods)s")
-            score_query_args['mods'] = (mod_int_primary, mod_int_secondary)
-            output_header += f"mods = {mods}, "
+            score_query_args['mods'] = out_mods
+            output_header += f"mods = {mods.upper()}, "
 
         else:
             mod_int = convert_mod_list_to_bitwise(mod_list)
             score_query_params.append(f"mods = %(mods)s")
-            score_query_args['mods'] = mod_int
-            output_header += f"mods = {mods}, "
+            score_query_args['mods'] = (mod_int)
+            output_header += f"mods = {mods.upper()}, "
     if min_acc is not None:
         score_query_params.append(f"accuracy >= %(min_acc)s")
         score_query_args['min_acc'] = min_acc
@@ -299,7 +310,6 @@ def leaderboard(mods: str, max_acc: float, min_acc: float, user_id: int, max_len
                     SELECT RANK () OVER (ORDER BY COUNT(*) DESC) AS rank, username, COUNT(*) FROM scores
                     WHERE scores.beatmap_id in (SELECT beatmap_id FROM ids) AND rank = 1
                     """
-
     beatmap_query_args.update(score_query_args)
     output_header = score_output_header + beatmap_output_header
 
@@ -337,3 +347,22 @@ def check_account(discord_id: int):
     cursor.close()
     conn.close()
     return osu_id
+
+
+def user_stats_lookup(username: str):
+    conn = establish_conn()
+    cursor = conn.cursor()
+    stats_dict = {}
+    cursor.execute("SELECT COUNT(*) FROM scores WHERE username = %(username)s AND rank = 1", {'username': username})
+    stats_dict['top1s'] = cursor.fetchone()[0]
+    cursor.execute("SELECT COUNT(*) FROM scores WHERE username = %(username)s AND rank <= 8", {'username': username})
+    stats_dict['top8s'] = cursor.fetchone()[0]
+    cursor.execute("SELECT COUNT(*) FROM scores WHERE username = %(username)s AND rank <= 50", {'username': username})
+    stats_dict['top50s'] = cursor.fetchone()[0]
+    cursor.execute("SELECT mods, COUNT(*) FROM scores WHERE username = %(username)s AND rank = 1 GROUP BY mods",
+                   {'username': username})
+    stats_dict['mod_stats'] = cursor.fetchall()
+
+    print(stats_dict)
+
+    return stats_dict

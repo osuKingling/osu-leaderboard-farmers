@@ -32,5 +32,8 @@ class APIManager:
         except Exception as e:
             print(e)
 
+    def retrieve_user_data(self, username: str):
+        return self.apiv2.user(username)
+
 
 api_mgr = APIManager()

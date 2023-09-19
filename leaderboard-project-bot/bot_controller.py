@@ -185,7 +185,7 @@ def create_score_query(mods: str, max_acc: float, min_acc: float, user_id: int, 
 
             score_query_params.append(f"mods IN %(mods)s")
             score_query_args['mods'] = out_mods
-            output_header += f"mods = {mods.upper()}, "
+            output_header += f"mods = {mods.upper()} (combined), "
 
         else:
             mod_int = convert_mod_list_to_bitwise(mod_list)

@@ -153,9 +153,9 @@ def create_beatmap_query(min_length: int, max_length: int, min_stars: float, max
     if year is not None:
         start_year = f"{year}-1-1"
         end_year = f"{year + 1}-1-1"
-        beatmap_query_params.append(f"approved_date >= %(start_year)s AND approved_date <= %(end_year)s")
-        beatmap_query_args[f'start_year'] = start_year
-        beatmap_query_args[f'end_year'] = end_year
+        beatmap_query_params.append(f"approved_date >= %(map_start_year)s AND approved_date <= %(map_end_year)s")
+        beatmap_query_args[f'map_start_year'] = start_year
+        beatmap_query_args[f'map_end_year'] = end_year
         output_header += f"map year =  {year}, "
 
     if len(beatmap_query_params) != 0:
@@ -215,9 +215,9 @@ def create_score_query(mods: str, max_acc: float, min_acc: float, user_id: int, 
     if year is not None:
         start_year = f"{year}-1-1"
         end_year = f"{year + 1}-1-1"
-        score_query_params.append(f"created_at >= %(start_year)s AND created_at <= %(end_year)s")
-        score_query_args[f'start_year'] = start_year
-        score_query_args[f'end_year'] = end_year
+        score_query_params.append(f"created_at >= %(score_start_year)s AND created_at <= %(score_end_year)s")
+        score_query_args[f'score_start_year'] = start_year
+        score_query_args[f'score_end_year'] = end_year
         output_header += f"score year =  {year}, "
 
     return score_query_params, score_query_args, output_header

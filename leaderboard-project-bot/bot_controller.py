@@ -218,7 +218,7 @@ def create_score_query(mods: str, max_acc: float, min_acc: float, user_id: int, 
         score_query_params.append(f"created_at >= %(start_year)s AND created_at <= %(end_year)s")
         score_query_args[f'start_year'] = start_year
         score_query_args[f'end_year'] = end_year
-        output_header += f"map year =  {year}, "
+        output_header += f"score year =  {year}, "
 
     return score_query_params, score_query_args, output_header
 

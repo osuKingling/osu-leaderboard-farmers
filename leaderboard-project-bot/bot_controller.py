@@ -175,7 +175,6 @@ def create_score_query(mods: str, max_acc: float, min_acc: float, user_id: int, 
         mods = mods.upper()
         mod_list = [mods[i:i + 2] for i in range(0, len(mods), 2)]
 
-
         if combine_mods:
             cleaned_mods = [mod for mod in mod_list if mod not in odd_mods]
             if "NC" in mod_list:
@@ -190,7 +189,7 @@ def create_score_query(mods: str, max_acc: float, min_acc: float, user_id: int, 
             score_query_params.append(f"mods IN %(mods)s")
             score_query_args['mods'] = out_mods
             extra_mods = f"SDPF{'NC' if 'DT' in cleaned_mods else ''}"
-            output_header.append(f"mods={''.join(cleaned_mods).upper()}({extra_mods})")
+            output_header.append(f"mods={''.join(cleaned_mods)}({extra_mods})")
 
         else:
             out_mods = (convert_mod_list_to_bitwise(mod_list),)

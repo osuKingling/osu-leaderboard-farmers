@@ -175,31 +175,26 @@ def create_score_query(mods: str, max_acc: float, min_acc: float, user_id: int, 
         mod_list = [mods[i:i + 2] for i in range(0, len(mods), 2)]
         if combine_mods:
 
-            for subjmod in odd_mods:
-                if 'PF' in mod_list:
-                    mod_list.remove('PF')
-                if 'SD' in mod_list:
-                    mod_list.remove('SD')
-                mod_list.append(subjmod)
-                out_mods += (convert_mod_list_to_bitwise(mod_list),)
-                for index, mod in enumerate(mod_list):
-                    if mod == 'dt' or mod == 'DT':
-                        mod_list[index] = 'NC'
-                        out_mods += (convert_mod_list_to_bitwise(mod_list),)
-                    elif mod == 'nc' or mod == 'NC':
-                        mod_list[index] = 'DT'
-                        out_mods += (convert_mod_list_to_bitwise(mod_list),)
+            cleaned_mods = [mod for mod in mod_list if mod not in odd_mods]
+            if "NC" in mod_list:
+                cleaned_mods.append("DT")
+            # Add cleaned and all odd mod combinations to our query. This will add NC to scores that didn't have DT, but
+            # that should be fine since NC should not be able to exist on its own.
+            out_mods = (convert_mod_list_to_bitwise(cleaned_mods),)
+            for mod in odd_mods:
+                bitwise_mods = convert_mod_list_to_bitwise(cleaned_mods + [mod])
+                out_mods += (bitwise_mods,)
 
             score_query_params.append(f"mods IN %(mods)s")
             score_query_args['mods'] = out_mods
             extra_mods = f"SDPF{'NC' if 'DT' in cleaned_mods else ''}"
-            output_header.append(f"mods={''.join(cleaned_mods)}({extra_mods})")
+            output_header.append(f"mods={''.join(cleaned_mods).upper()}({extra_mods})")
 
         else:
-            mod_int = convert_mod_list_to_bitwise(mod_list)
+            out_mods = (convert_mod_list_to_bitwise(mod_list),)
             score_query_params.append(f"mods = %(mods)s")
             score_query_args['mods'] = out_mods
-            output_header.append(f"mods={mods}")
+            output_header.append(f"mods={mods.upper()}")
 
     if min_acc is not None:
         score_query_params.append(f"accuracy >= %(min_acc)s")

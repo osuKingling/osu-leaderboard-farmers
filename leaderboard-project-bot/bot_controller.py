@@ -172,9 +172,11 @@ def create_score_query(mods: str, max_acc: float, min_acc: float, user_id: int, 
     odd_mods = ['PF', 'SD', 'NC']
 
     if mods is not None:
+        mods = mods.upper()
         mod_list = [mods[i:i + 2] for i in range(0, len(mods), 2)]
-        if combine_mods:
 
+
+        if combine_mods:
             cleaned_mods = [mod for mod in mod_list if mod not in odd_mods]
             if "NC" in mod_list:
                 cleaned_mods.append("DT")
@@ -194,7 +196,7 @@ def create_score_query(mods: str, max_acc: float, min_acc: float, user_id: int, 
             out_mods = (convert_mod_list_to_bitwise(mod_list),)
             score_query_params.append(f"mods = %(mods)s")
             score_query_args['mods'] = out_mods
-            output_header.append(f"mods={mods.upper()}")
+            output_header.append(f"mods={mods}")
 
     if min_acc is not None:
         score_query_params.append(f"accuracy >= %(min_acc)s")

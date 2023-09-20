@@ -181,7 +181,7 @@ def create_score_query(mods: str, max_acc: float, min_acc: float, user_id: int, 
                 cleaned_mods.append("DT")
             # Add cleaned and all odd mod combinations to our query. This will add NC to scores that didn't have DT, but
             # that should be fine since NC should not be able to exist on its own.
-            out_mods = (convert_mod_list_to_bitwise(cleaned_mods))
+            out_mods = (convert_mod_list_to_bitwise(cleaned_mods),)
             for mod in odd_mods:
                 bitwise_mods = convert_mod_list_to_bitwise(cleaned_mods + [mod])
                 out_mods += (bitwise_mods,)

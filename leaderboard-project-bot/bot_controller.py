@@ -183,6 +183,7 @@ def create_score_query(mods: str, max_acc: float, min_acc: float, user_id: int, 
             # that should be fine since NC should not be able to exist on its own.
             out_mods = (convert_mod_list_to_bitwise(cleaned_mods),)
             for mod in odd_mods:
+                # Skip NC if DT not in mod list
                 if (mod == 'NC' and 'DT' in mod_list) or mod != 'NC':
                     bitwise_mods = convert_mod_list_to_bitwise(cleaned_mods + [mod])
                     out_mods += (bitwise_mods,)

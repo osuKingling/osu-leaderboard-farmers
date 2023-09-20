@@ -98,7 +98,7 @@ def create_beatmap_query(min_length: int, max_length: int, min_stars: float, max
                          max_ar: float, min_od: float, max_od: float, min_spinners: float, max_spinners: float,
                          tags: List[str], year: int
                          ):
-    output_header = ""
+    output_header = []
     beatmap_ids_query = """SELECT beatmap_id 
                                 FROM beatmaps"""
     beatmap_query_params = []
@@ -107,48 +107,48 @@ def create_beatmap_query(min_length: int, max_length: int, min_stars: float, max
     if min_length is not None:
         beatmap_query_params.append(f"length >= %(min_length)s")
         beatmap_query_args['min_length'] = min_length
-        output_header += f"length >= {min_length}, "
+        output_header.append(f"length>={min_length}")
     if max_length is not None:
         beatmap_query_params.append(f"length <= %(max_length)s")
         beatmap_query_args['max_length'] = max_length
-        output_header += f"length <= {max_length}, "
+        output_header.append(f"length<={max_length}")
     if min_stars is not None:
         beatmap_query_params.append(f"difficulty_rating >= %(min_stars)s")
         beatmap_query_args['min_stars'] = min_stars
-        output_header += f"min_stars >= {min_stars}, "
+        output_header.append(f"stars>={min_stars}")
     if max_stars is not None:
         beatmap_query_params.append(f"difficulty_rating <= %(max_stars)s")
         beatmap_query_args['max_stars'] = max_stars
-        output_header += f"max_stars <= {max_stars}, "
+        output_header.append(f"stars<={max_stars}")
     if min_ar is not None:
         beatmap_query_params.append(f"ar >= %(min_ar)s")
         beatmap_query_args['min_ar'] = min_ar
-        output_header += f"min_ar >= {min_ar}, "
+        output_header.append(f"ar>={min_ar}")
     if max_ar is not None:
         beatmap_query_params.append(f"ar <= %(max_ar)s")
         beatmap_query_args['max_ar'] = max_ar
-        output_header += f"max_ar <= {max_ar}, "
+        output_header.append(f"ar<={max_ar}")
     if min_od is not None:
         beatmap_query_params.append(f"od >= %(min_od)s")
         beatmap_query_args['min_od'] = min_od
-        output_header += f"min_od >= {min_od}, "
+        output_header.append(f"od>={min_od}")
     if max_od is not None:
         beatmap_query_params.append(f"od <= %(max_od)s")
         beatmap_query_args['max_od'] = max_od
-        output_header += f"max_od <= {max_od}, "
+        output_header.append(f"od<={max_od}")
     if min_spinners is not None:
         beatmap_query_params.append(f"spinners >= %(min_spinners)s")
         beatmap_query_args['min_spinners'] = min_spinners
-        output_header += f"min_spinners >= {min_spinners}, "
+        output_header.append(f"spinners>={min_spinners}")
     if max_spinners is not None:
         beatmap_query_params.append(f"spinners <= %(max_spinners)s")
         beatmap_query_args['max_spinners'] = max_spinners
-        output_header += f"max_spinners <= {max_spinners}, "
+        output_header.append(f"spinners<={max_spinners}")
     if tags is not None:
         for index, tag in enumerate(tags):
             beatmap_query_params.append(f"%(tag{index})s = ANY(tags)")
             beatmap_query_args[f'tag{index}'] = tag
-        output_header += f"tag =  {tags}, "
+        output_header.append(f"tags={tags}")
 
     if year is not None:
         start_year = f"{year}-1-1"
@@ -156,7 +156,7 @@ def create_beatmap_query(min_length: int, max_length: int, min_stars: float, max
         beatmap_query_params.append(f"approved_date >= %(map_start_year)s AND approved_date <= %(map_end_year)s")
         beatmap_query_args[f'map_start_year'] = start_year
         beatmap_query_args[f'map_end_year'] = end_year
-        output_header += f"map year =  {year}, "
+        output_header.append(f"map_year={year}")
 
     if len(beatmap_query_params) != 0:
         beatmap_ids_query += ' WHERE '
@@ -168,12 +168,13 @@ def create_beatmap_query(min_length: int, max_length: int, min_stars: float, max
 def create_score_query(mods: str, max_acc: float, min_acc: float, user_id: int, year: int, combine_mods: bool):
     score_query_params = []
     score_query_args = {}
-    output_header = ""
+    output_header = []
     odd_mods = ['PF', 'SD', 'NC']
 
     if mods is not None:
         mods = mods.upper()
         mod_list = [mods[i:i + 2] for i in range(0, len(mods), 2)]
+
 
         if combine_mods:
             cleaned_mods = [mod for mod in mod_list if mod not in odd_mods]
@@ -188,33 +189,34 @@ def create_score_query(mods: str, max_acc: float, min_acc: float, user_id: int, 
 
             score_query_params.append(f"mods IN %(mods)s")
             score_query_args['mods'] = out_mods
-            output_header += f"mods = {mods} (combined), "
+            extra_mods = f"SDPF{'NC' if 'DT' in cleaned_mods else ''}"
+            output_header.append(f"mods={''.join(cleaned_mods).upper()}({extra_mods})")
 
         else:
-            out_mods = (convert_mod_list_to_bitwise(mod_list))
+            out_mods = (convert_mod_list_to_bitwise(mod_list),)
             score_query_params.append(f"mods = %(mods)s")
             score_query_args['mods'] = out_mods
-            output_header += f"mods = {mods}, "
+            output_header.append(f"mods={mods}")
 
     if min_acc is not None:
         score_query_params.append(f"accuracy >= %(min_acc)s")
         score_query_args['min_acc'] = min_acc
-        output_header += f"min_acc = {min_acc}, "
+        output_header.append(f"acc>={min_acc}")
     if max_acc is not None:
         score_query_params.append(f"accuracy <= %(max_acc)s")
         score_query_args['max_acc'] = max_acc
-        output_header += f"max_acc = {max_acc}, "
+        output_header.append(f"acc<={max_acc}")
     if user_id is not None:
         score_query_params.append(f"user_id = %(user_id)s")
         score_query_args['user_id'] = user_id
-        output_header += f"user_id = {user_id}, "
+        output_header.append(f"user_id={user_id}")
     if year is not None:
         start_year = f"{year}-1-1"
         end_year = f"{year + 1}-1-1"
         score_query_params.append(f"created_at >= %(score_start_year)s AND created_at <= %(score_end_year)s")
         score_query_args[f'score_start_year'] = start_year
         score_query_args[f'score_end_year'] = end_year
-        output_header += f"score year =  {year}, "
+        output_header.append(f"score_year={year}")
 
     return score_query_params, score_query_args, output_header
 
@@ -278,7 +280,7 @@ def retrieve_1s(mods: str, max_acc: float, min_acc: float, user_id: int, max_len
         rank1s_query += ' AND '.join(score_query_params)
 
     beatmap_query_args.update(score_query_args)
-    output_header = score_output_header + beatmap_output_header
+    output_header = ', '.join(score_output_header + beatmap_output_header)
 
     cursor.execute(rank1s_query, beatmap_query_args)
     rank1_data = cursor.fetchall()
@@ -326,7 +328,7 @@ def leaderboard(mods: str, max_acc: float, min_acc: float, user_id: int, max_len
                     WHERE scores.beatmap_id in (SELECT beatmap_id FROM ids) AND rank = 1
                     """
     beatmap_query_args.update(score_query_args)
-    output_header = score_output_header + beatmap_output_header
+    output_header = ', '.join(score_output_header + beatmap_output_header)
 
     if len(score_query_params) != 0:
         rank1s_query += ' AND '
@@ -337,7 +339,7 @@ def leaderboard(mods: str, max_acc: float, min_acc: float, user_id: int, max_len
     cursor.execute(rank1s_query, beatmap_query_args)
     leaderboard_output = cursor.fetchall()
 
-    return leaderboard_output, output_header[:-2]
+    return leaderboard_output, output_header
 
 
 def link_account(discord_id: int, osu_username: str):

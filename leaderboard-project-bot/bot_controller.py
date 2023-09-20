@@ -170,7 +170,6 @@ def create_score_query(mods: str, max_acc: float, min_acc: float, user_id: int, 
     score_query_args = {}
     output_header = ""
     odd_mods = ['PF', 'SD', 'NC']
-    out_mods = ()
 
     if mods is not None:
         mods = mods.upper()
